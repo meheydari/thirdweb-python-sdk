@@ -15,7 +15,10 @@ class LoginPayloadData:
     domain: str
     address: str
     nonce: str
+    version: str
     expiration_time: datetime
+    invalid_before: datetime
+    issued_at: datetime
     chain_id: Optional[int] = None
 
     @staticmethod
@@ -24,7 +27,10 @@ class LoginPayloadData:
             json["domain"],
             json["address"],
             json["nonce"],
+            json['version'],
             datetime.strptime(json["expiration_time"], "%Y-%m-%dT%H:%M:%S.%fZ"),
+            datetime.strptime(json["invalid_before"], "%Y-%m-%dT%H:%M:%S.%fZ"),
+            datetime.strptime(json["issued_at"], "%Y-%m-%dT%H:%M:%S.%fZ"),
             json.get("chain_id"),
         )
 
