@@ -285,7 +285,7 @@ class WalletAuthenticator(ProviderHandler):
     INTERNAL FUNCTIONS
     """
 
-    def _generate_message(self, payload: LoginPayloadData) -> str:
+       def _generate_message(self, payload: LoginPayloadData) -> str:
         """
         Generates an EIP-4361 compliant message to sign based on the login payload
         """
@@ -293,23 +293,35 @@ class WalletAuthenticator(ProviderHandler):
         message = ""
 
         # Add the domain and login address for transparency
-        message += f"{payload.domain} wants you to sign in with your account:\n{payload.address}\n\n"
+        message += f"{payload.domain} wants you to sign in with your Ethereum account:\n{payload.address}\n\n"
 
         # Prompt user to make sure domain is correct to prevent phishing attacks
-        message += "Make sure that the requesting domain above matches the URL of the current website.\n\n"
+        message += "Please ensure that the domain above matches the URL of the current website.\n\n"
 
+        message += f"Version: {payload.version}\n"
         # Add data fields in compliance with the EIP-4361 standard
         if payload.chain_id is not None:
             message += f"Chain ID: {payload.chain_id}\n"
 
         message += f"Nonce: {payload.nonce}\n"
 
+        time = payload.issued_at.strftime("%Y-%m-%dT%H:%M:%S")
+        microseconds = payload.issued_at.strftime("%f")[0:3]
+        formatted_time = f"{time}.{microseconds}Z"
+        message += f"Issued At: {formatted_time}\n"
+
         time = payload.expiration_time.strftime("%Y-%m-%dT%H:%M:%S")
         microseconds = payload.expiration_time.strftime("%f")[0:3]
         formatted_time = f"{time}.{microseconds}Z"
         message += f"Expiration Time: {formatted_time}\n"
 
+        time = payload.invalid_before.strftime("%Y-%m-%dT%H:%M:%S")
+        microseconds = payload.invalid_before.strftime("%f")[0:3]
+        formatted_time = f"{time}.{microseconds}Z"
+        message += f"Not Before: {formatted_time}"
+
         return message
+
 
     def _recover_address(self, message: str, signature: str) -> str:
         """
