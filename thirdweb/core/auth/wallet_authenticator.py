@@ -322,67 +322,61 @@ class WalletAuthenticator(ProviderHandler):
 
         return message
 
+    def _recover_address(self, message: str, signature: str) -> str:
+        """
+        Recover the signing address from a signed message
+        """
 
-def _recover_address(self, message: str, signature: str) -> str:
-    """
-    Recover the signing address from a signed message
-    """
-
-    message_hash = encode_defunct(text=message)
-    provider = self.get_provider()
-    address = provider.eth.account.recover_message(
-        message_hash, signature=signature
-    )
-
-    return address
-
-
-def _require_signer(self) -> LocalAccount:
-    """
-    Raises an error if the signer is not set
-    """
-
-    signer = self.get_signer()
-    if signer is None:
-        raise Exception(
-            "This action requires a connected wallet. Please pass a valid signer or private key to the SDK."
+        message_hash = encode_defunct(text=message)
+        provider = self.get_provider()
+        address = provider.eth.account.recover_message(
+            message_hash, signature=signature
         )
 
-    return signer
+        return address
 
+    def _require_signer(self) -> LocalAccount:
+        """
+        Raises an error if the signer is not set
+        """
 
-def _sign_message(self, message: str) -> str:
-    """
-    Sign a message with the connected wallet
-    """
+        signer = self.get_signer()
+        if signer is None:
+            raise Exception(
+                "This action requires a connected wallet. Please pass a valid signer or private key to the SDK."
+            )
 
-    signer = self._require_signer()
-    provider = self.get_provider()
-    message_hash = encode_defunct(text=message)
-    signature = provider.eth.account.sign_message(message_hash, signer._private_key)
+        return signer
 
-    return cast(SignedMessage, signature).signature.hex()
+    def _sign_message(self, message: str) -> str:
+        """
+        Sign a message with the connected wallet
+        """
 
+        signer = self._require_signer()
+        provider = self.get_provider()
+        message_hash = encode_defunct(text=message)
+        signature = provider.eth.account.sign_message(message_hash, signer._private_key)
 
-def _stringify(self, value: Any) -> str:
-    """
-    Configure json.dumps to work exactly as JSON.stringify works for compatibility
-    """
+        return cast(SignedMessage, signature).signature.hex()
 
-    return json.dumps(value, separators=(",", ":"))
+    def _stringify(self, value: Any) -> str:
+        """
+        Configure json.dumps to work exactly as JSON.stringify works for compatibility
+        """
 
+        return json.dumps(value, separators=(",", ":"))
 
-def _base64encode(self, message: str) -> str:
-    """
-    Encode a message in base64
-    """
+    def _base64encode(self, message: str) -> str:
+        """
+        Encode a message in base64
+        """
 
-    return base64.b64encode(message.encode("utf-8")).decode("utf-8")
+        return base64.b64encode(message.encode("utf-8")).decode("utf-8")
 
+    def _base64decode(self, message: str) -> str:
+        """
+        Decode a message from base64
+        """
 
-def _base64decode(self, message: str) -> str:
-    """
-    Decode a message from base64
-    """
-
-    return base64.b64decode(message).decode("utf-8")
+        return base64.b64decode(message).decode("utf-8")
