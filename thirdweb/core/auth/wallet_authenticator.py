@@ -51,15 +51,15 @@ class WalletAuthenticator(ProviderHandler):
     """
 
     def __init__(
-        self,
-        provider: Web3,
-        signer: Optional[LocalAccount] = None,
-        options: SDKOptions = SDKOptions(),
+            self,
+            provider: Web3,
+            signer: Optional[LocalAccount] = None,
+            options: SDKOptions = SDKOptions(),
     ):
         super().__init__(provider, signer, options)
 
     def login(
-        self, domain: str, options: LoginOptions = LoginOptions()
+            self, domain: str, options: LoginOptions = LoginOptions()
     ) -> LoginPayload:
         """
         Client-side function that allows the connected wallet to login to a server-side application.
@@ -98,10 +98,10 @@ class WalletAuthenticator(ProviderHandler):
         )
 
     def verify(
-        self,
-        domain: str,
-        payload: LoginPayload,
-        options: VerifyOptions = VerifyOptions(),
+            self,
+            domain: str,
+            payload: LoginPayload,
+            options: VerifyOptions = VerifyOptions(),
     ) -> str:
         """
         Server-side function to securely verify the address of the logged in client-side wallet
@@ -129,14 +129,14 @@ class WalletAuthenticator(ProviderHandler):
         # Check that the payload hasn't expired
         current_time = datetime.utcnow()
         if current_time.replace(
-            tzinfo=pytz.utc
+                tzinfo=pytz.utc
         ) > payload.payload.expiration_time.replace(tzinfo=pytz.utc):
             raise Exception(f"Login request has expired")
 
         # If chain ID is specified, check that it matches the chain ID of the signature
         if (
-            options.chain_id is not None
-            and options.chain_id != payload.payload.chain_id
+                options.chain_id is not None
+                and options.chain_id != payload.payload.chain_id
         ):
             raise Exception(
                 f"Chain ID '{options.chain_id}' does not match payload chain ID '{payload.payload.chain_id}'"
@@ -153,10 +153,10 @@ class WalletAuthenticator(ProviderHandler):
         return user_address
 
     def generate_auth_token(
-        self,
-        domain: str,
-        payload: LoginPayload,
-        options: AuthenticationOptions = AuthenticationOptions(),
+            self,
+            domain: str,
+            payload: LoginPayload,
+            options: AuthenticationOptions = AuthenticationOptions(),
     ) -> str:
         """
         Server-side function that generates a JWT token from the provided login request that the
@@ -213,9 +213,9 @@ class WalletAuthenticator(ProviderHandler):
         return token
 
     def authenticate(
-        self,
-        domain: str,
-        token: str,
+            self,
+            domain: str,
+            token: str,
     ) -> str:
         """
         Server-side function that authenticates the provided JWT token. This function verifies that
@@ -250,7 +250,7 @@ class WalletAuthenticator(ProviderHandler):
         # Check that the token is past the invalid before time
         current_time = datetime.utcnow()
         if current_time.replace(tzinfo=pytz.utc) < datetime.fromtimestamp(
-            payload.nbf
+                payload.nbf
         ).replace(tzinfo=pytz.utc):
             raise Exception(
                 f"This token is invalid before epoch time '{payload.nbf}', current epoch time is '{int(current_time.timestamp())}'"
@@ -258,7 +258,7 @@ class WalletAuthenticator(ProviderHandler):
 
         # Check that the token hasn't expired
         if current_time.replace(tzinfo=pytz.utc) > datetime.fromtimestamp(
-            payload.exp
+                payload.exp
         ).replace(tzinfo=pytz.utc):
             raise Exception(
                 f"This token expired at epoch time '{payload.exp}', current epoch time is '{int(current_time.timestamp())}'"
@@ -285,7 +285,7 @@ class WalletAuthenticator(ProviderHandler):
     INTERNAL FUNCTIONS
     """
 
-       def _generate_message(self, payload: LoginPayloadData) -> str:
+    def _generate_message(self, payload: LoginPayloadData) -> str:
         """
         Generates an EIP-4361 compliant message to sign based on the login payload
         """
@@ -323,61 +323,66 @@ class WalletAuthenticator(ProviderHandler):
         return message
 
 
-    def _recover_address(self, message: str, signature: str) -> str:
-        """
-        Recover the signing address from a signed message
-        """
+def _recover_address(self, message: str, signature: str) -> str:
+    """
+    Recover the signing address from a signed message
+    """
 
-        message_hash = encode_defunct(text=message)
-        provider = self.get_provider()
-        address = provider.eth.account.recover_message(
-            message_hash, signature=signature
+    message_hash = encode_defunct(text=message)
+    provider = self.get_provider()
+    address = provider.eth.account.recover_message(
+        message_hash, signature=signature
+    )
+
+    return address
+
+
+def _require_signer(self) -> LocalAccount:
+    """
+    Raises an error if the signer is not set
+    """
+
+    signer = self.get_signer()
+    if signer is None:
+        raise Exception(
+            "This action requires a connected wallet. Please pass a valid signer or private key to the SDK."
         )
 
-        return address
+    return signer
 
-    def _require_signer(self) -> LocalAccount:
-        """
-        Raises an error if the signer is not set
-        """
 
-        signer = self.get_signer()
-        if signer is None:
-            raise Exception(
-                "This action requires a connected wallet. Please pass a valid signer or private key to the SDK."
-            )
+def _sign_message(self, message: str) -> str:
+    """
+    Sign a message with the connected wallet
+    """
 
-        return signer
+    signer = self._require_signer()
+    provider = self.get_provider()
+    message_hash = encode_defunct(text=message)
+    signature = provider.eth.account.sign_message(message_hash, signer._private_key)
 
-    def _sign_message(self, message: str) -> str:
-        """
-        Sign a message with the connected wallet
-        """
+    return cast(SignedMessage, signature).signature.hex()
 
-        signer = self._require_signer()
-        provider = self.get_provider()
-        message_hash = encode_defunct(text=message)
-        signature = provider.eth.account.sign_message(message_hash, signer._private_key)
 
-        return cast(SignedMessage, signature).signature.hex()
+def _stringify(self, value: Any) -> str:
+    """
+    Configure json.dumps to work exactly as JSON.stringify works for compatibility
+    """
 
-    def _stringify(self, value: Any) -> str:
-        """
-        Configure json.dumps to work exactly as JSON.stringify works for compatibility
-        """
+    return json.dumps(value, separators=(",", ":"))
 
-        return json.dumps(value, separators=(",", ":"))
 
-    def _base64encode(self, message: str) -> str:
-        """
-        Encode a message in base64
-        """
+def _base64encode(self, message: str) -> str:
+    """
+    Encode a message in base64
+    """
 
-        return base64.b64encode(message.encode("utf-8")).decode("utf-8")
+    return base64.b64encode(message.encode("utf-8")).decode("utf-8")
 
-    def _base64decode(self, message: str) -> str:
-        """
-        Decode a message from base64
-        """
 
-        return base64.b64decode(message).decode("utf-8")
+def _base64decode(self, message: str) -> str:
+    """
+    Decode a message from base64
+    """
+
+    return base64.b64decode(message).decode("utf-8")
